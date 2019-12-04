@@ -1,0 +1,28 @@
+﻿@page "/game/{Id}"
+
+@using Codenames.Data;
+
+@if (game == null)
+{
+     game = WordService.GetGame(int.Parse(Id));
+}
+@if (game != null)
+{
+    <div class="grid-container">
+        @foreach (var item in game.Words)
+        {
+            var tmpWord = item;
+
+            <div class="grid-item @(item.isGuessed ? item.state.ToString().ToLower() : "")" @onclick="() => WordService.MarkAsClicked(game, tmpWord.word)">
+                @item.word
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    Game game = null;
+}
