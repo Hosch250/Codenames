@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Http.Extensions;
 using MoreLinq;
 
 namespace Codenames.Data
@@ -1556,7 +1557,7 @@ namespace Codenames.Data
         private static string GetWord() =>
             Words[_random.Next(0, Words.Length)];
 
-        public static EventCallback CreateGame()
+        public static Game CreateGame()
         {
             var words = Enumerable.Range(0, 25).Select(s => GetWord()).ToList();
             var currentTeam = _random.Next(0, 2);
@@ -1583,7 +1584,7 @@ namespace Codenames.Data
 
             _games.AddOrUpdate(game, 0, (key, value) => 0);
 
-            return EventCallback.Empty;
+            return game;
         }
 
         public static Game GetGame(int id) =>

@@ -53,6 +53,9 @@ namespace Codenames
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapBlazorHub();
+                endpoints.MapControllerRoute(
+                    name: "default",
+                    pattern: "{controller}/{action}/{id?}");
                 endpoints.MapFallbackToPage("/_Host");
             });
         }

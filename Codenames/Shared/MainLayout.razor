@@ -1,6 +1,10 @@
 ﻿@inherits LayoutComponentBase
 
 <div class="main">
+    <div class="top-row px-4">
+        <a @onclick="() => Codenames.Data.WordService.CreateGame()" href="/game/0" target="_blank">Create Game</a>
+    </div>
+
     <div class="content px-4">
         @Body
     </div>
