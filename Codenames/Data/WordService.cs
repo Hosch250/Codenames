@@ -1568,7 +1568,7 @@ namespace Codenames.Data
 
             var game = new Game
             {
-                Id = _games.Keys.OrderByDescending(o => o.Id).FirstOrDefault()?.Id ?? 0,
+                Id = _games.Keys.OrderByDescending(o => o.Id).FirstOrDefault()?.Id + 1 ?? 0,
                 CurrentTeam = (Team)currentTeam,
                 Words = words.Select((s, i) => {
                     var state = i switch {
