@@ -1,27 +1,11 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Http.Extensions;
 using MoreLinq;
 
 namespace Codenames.Data
 {
-    public enum State
-    {
-        Red, Blue, Neutral, Assassin
-    }
-
-    public enum Team { Red, Blue }
-
-    public class Game
-    {
-        public int Id { get; set; }
-        public Team CurrentTeam { get; set; }
-        public List<(string word, State state, bool isGuessed)> Words { get; set; }
-    }
-
     public class WordService
     {
         private static readonly Random _random = new Random();
