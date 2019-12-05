@@ -1620,6 +1620,33 @@ namespace Codenames.Data
         public static List<Game> GetActiveGames() =>
             _games.Keys.Where(f => !f.IsOver).ToList();
 
+        public static void JoinGame(int gameId, int playerId)
+        {
+            var game = GetGame(gameId);
+            if (game.IsOver)
+            {
+                return;
+            }
+
+            Team team;
+
+            var playerCount = game.Players.CountBy(c => c.team).ToDictionary();
+            if (playerCount[Team.Red] > playerCount[Team.Blue])
+            {
+                team = Team.Blue;
+            }
+            else if (playerCount[Team.Red] < playerCount[Team.Blue])
+            {
+                team = Team.Red;
+            }
+            else
+            {
+                team = (Team)_random.Next(0, 2);
+            }
+
+            game.Players.Add((playerId, team));
+        }
+
         private static readonly ConcurrentDictionary<Game, byte> _games = new ConcurrentDictionary<Game, byte>();
     }
 }
