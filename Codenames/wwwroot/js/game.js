@@ -15,11 +15,10 @@ connection.on("ShowAllWords", function (words) {
 });
 
 connection.start().then(function () {
+    connection.invoke("AddPlayer").catch(function (err) {
+        return console.error(err.toString());
+    });
 }).catch(function (err) {
-    return console.error(err.toString());
-});
-
-connection.invoke("AddPlayer").catch(function (err) {
     return console.error(err.toString());
 });
 

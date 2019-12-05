@@ -1709,6 +1709,10 @@ namespace Codenames.Data
 
             game.Players.Add((player.Id, team, true));
             player.GameIds.Add(gameId);
+
+            var words = game.Words
+                .Select(s => new { s.word, state = s.state.ToString().ToLower() });
+            _hubContext.Clients.Client(connectionId).SendAsync("ShowAllWords", words);
         }
 
         public void LeaveGame(int gameId, string connectionId)
