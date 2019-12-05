@@ -1680,7 +1680,10 @@ namespace Codenames.Data
             }
 
             var playerCount = game.Players.CountBy(c => c.team).ToDictionary();
-            Team team = (playerCount[Team.Red], playerCount[Team.Blue]) switch
+            var redCount = playerCount.ContainsKey(Team.Red) ? playerCount[Team.Red] : 0;
+            var blueCount = playerCount.ContainsKey(Team.Red) ? playerCount[Team.Blue] : 0;
+
+            Team team = (redCount, blueCount) switch
             {
                 var (red, blue) when red > blue => Team.Blue,
                 var (red, blue) when red < blue => Team.Red,
@@ -1709,10 +1712,6 @@ namespace Codenames.Data
 
             game.Players.Add((player.Id, team, true));
             player.GameIds.Add(gameId);
-
-            var words = game.Words
-                .Select(s => new { s.word, state = s.state.ToString().ToLower() });
-            _hubContext.Clients.Client(connectionId).SendAsync("ShowAllWords", words);
         }
 
         public void LeaveGame(int gameId, string connectionId)

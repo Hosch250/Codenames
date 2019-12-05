@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Codenames.SignalRHubs
@@ -46,6 +47,12 @@ namespace Codenames.SignalRHubs
         public void JoinGameAsSm(int gameId, int team)
         {
             _wordService.JoinGameAsSm(gameId, Context.ConnectionId, (Team)team);
+
+            var words = _wordService.GetGame(gameId).Words
+                .Select(s => new { s.word, state = s.state.ToString().ToLower() });
+            Clients.Client(Context.ConnectionId).SendAsync("ShowAllWords", words);
+
+            Clients.Group(gameId.ToString()).SendAsync("RemoveJoinAsSmButton", ((Team)team).ToString().ToLower());
         }
 
         public void LeaveGame(int gameId)

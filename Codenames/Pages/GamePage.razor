@@ -10,11 +10,20 @@
 @if (game != null)
 {
     <div>
-        <button type="button" class="btn btn-primary neutral" onclick="joinGame()">Join Game</button>
-        <button type="button" class="btn btn-primary red" onclick="joinGameAsSm(0)">Join Game as Red SM</button>
-        <button type="button" class="btn btn-primary blue" onclick="joinGameAsSm(1)">Join Game as Blue SM</button>
-        <button type="button" class="btn btn-primary assassin" onclick="leaveGame()">Leave Game</button>
+        <button type="button" class="join btn btn-primary neutral" onclick="joinGame()">Join Game</button>
+
+        @if (!game.Players.Any(a => a.isSpyMaster && a.team == Team.Red))
+        {
+            <button type="button" class="sm-join btn btn-primary red" onclick="joinGameAsSm(0)">Join Game as Red SM</button>
+        }
+        @if (!game.Players.Any(a => a.isSpyMaster && a.team == Team.Blue))
+        {
+            <button type="button" class="sm-join btn btn-primary blue" onclick="joinGameAsSm(1)">Join Game as Blue SM</button>
+        }
+
+        <button type="button" class="leave btn btn-primary assassin" onclick="leaveGame()">Leave Game</button>
     </div>
+    <br/>
     <br/>
     <div class="row">
         <div class="col-sm chat-column">

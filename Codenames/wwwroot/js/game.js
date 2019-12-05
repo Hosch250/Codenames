@@ -4,14 +4,19 @@ var connection = new signalR.HubConnectionBuilder()
     .withUrl("/gameHub?currentPage=" + location.pathname)
     .build();
 
-connection.on("ShowWord", function (word, status) {
-    document.getElementsByClassName(`grid-item ${word}`)[0].classList.add(status);
+connection.on("ShowWord", function (word, state) {
+    $(`.grid-item.${word}`).addClass(state);
 });
 
 connection.on("ShowAllWords", function (words) {
     for (var word of words) {
-        document.getElementsByClassName(`grid-item ${word.word}`)[0].classList.add(word.state);
+        $(`.grid-item.${word.word}`).addClass(word.state);
     }
+});
+
+connection.on("RemoveJoinAsSmButton", function (team) {
+    console.log(team);
+    $(`.sm-join.${team}`).remove();
 });
 
 connection.on('ChatMessage', function (playerName, message, team) {
@@ -55,9 +60,10 @@ function joinGame() {
 
 function joinGameAsSm(team) {
     var gameId = location.pathname.split('/').pop();
-    connection.invoke("JoinGameAsSm", parseInt(gameId), team).catch(function (err) {
-        return console.error(err.toString());
-    });
+    connection.invoke("JoinGameAsSm", parseInt(gameId), team)
+        .catch(function (err) {
+            return console.error(err.toString());
+        });
 }
 
 function leaveGame() {
