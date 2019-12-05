@@ -33,9 +33,9 @@ namespace Codenames.SignalRHubs
             _wordService.AddPlayer(Context.ConnectionId);
         }
 
-        public async Task ChatMessage(int gameId, string user, string message)
+        public async Task ChatMessage(int gameId, string user, string message, string team)
         {
-            await Clients.Groups(gameId.ToString()).SendAsync("ChatMessage", user, message);
+            await Clients.Groups(gameId.ToString()).SendAsync("ChatMessage", user, message, team);
         }
 
         public void JoinGame(int gameId)

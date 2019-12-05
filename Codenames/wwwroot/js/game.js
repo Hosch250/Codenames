@@ -14,6 +14,30 @@ connection.on("ShowAllWords", function (words) {
     }
 });
 
+connection.on('ChatMessage', function (playerName, message, team) {
+    let formattedMessage = `<div><span class="bold">${playerName}:</span> <span>${message}</span></div>`;
+
+    if (team.toLowerCase() === "red") {
+        let chatContainer = $('#red-chat .chat-content');
+        let isScrolledToBottom = chatContainer[0].scrollTop >= (chatContainer[0].scrollHeight - chatContainer[0].offsetHeight - 2);
+
+        chatContainer.append(formattedMessage);
+
+        if (isScrolledToBottom) {
+            chatContainer.scrollTop(chatContainer.prop("scrollHeight"));
+        }
+    } else {
+        let chatContainer = $('#blue-chat .chat-content');
+        let isScrolledToBottom = chatContainer[0].scrollTop >= (chatContainer[0].scrollHeight - chatContainer[0].offsetHeight - 2);
+
+        chatContainer.append(formattedMessage);
+
+        if (isScrolledToBottom) {
+            chatContainer.scrollTop(chatContainer.prop("scrollHeight"));
+        }
+    }
+});
+
 connection.start().then(function () {
     connection.invoke("AddPlayer").catch(function (err) {
         return console.error(err.toString());
@@ -24,7 +48,6 @@ connection.start().then(function () {
 
 function joinGame() {
     var gameId = location.pathname.split('/').pop();
-    console.log(gameId);
     connection.invoke("JoinGame", parseInt(gameId)).catch(function (err) {
         return console.error(err.toString());
     });
@@ -43,3 +66,15 @@ function leaveGame() {
         return console.error(err.toString());
     });
 }
+
+function postToChat(evt) {
+    evt.preventDefault();
+
+    var team = $(evt.target).closest('.chat').attr('id').replace('-chat', '');
+
+    var gameId = location.pathname.split('/').pop();
+    connection.invoke("chatMessage", parseInt(gameId), "Player X", $(evt.target).find('input').val(), team)
+        .catch(function (err) {
+            return console.error(err.toString());
+        });
+};
