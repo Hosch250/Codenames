@@ -14,9 +14,13 @@ connection.on("ShowAllWords", function (words) {
     }
 });
 
-connection.on("RemoveJoinAsSmButton", function (team) {
-    console.log(team);
-    $(`.sm-join.${team}`).remove();
+connection.on("RemoveButton", function (identifier) {
+    $(identifier).addClass("hide");
+});
+
+connection.on("AddButton", function (identifier) {
+    console.log(identifier);
+    $(identifier).removeClass("hide");
 });
 
 connection.on('ChatMessage', function (playerName, message, team) {
@@ -44,9 +48,12 @@ connection.on('ChatMessage', function (playerName, message, team) {
 });
 
 connection.start().then(function () {
-    connection.invoke("AddPlayer").catch(function (err) {
-        return console.error(err.toString());
-    });
+    connection.invoke("AddPlayer")
+        .then(function (value) {
+            document.cookie = "userid=" + value + ";path=/";
+        }).catch (function (err) {
+            return console.error(err.toString());
+        });
 }).catch(function (err) {
     return console.error(err.toString());
 });

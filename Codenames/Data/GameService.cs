@@ -1615,14 +1615,22 @@ namespace Codenames.Data
             return EventCallback.Empty;
         }
 
-        public void AddPlayer(string connectionId)
+        public int AddPlayer(string connectionId)
         {
+            var playerId = _players.Keys.OrderByDescending(s => s.Id).FirstOrDefault()?.Id + 1 ?? 0;
             _players.AddOrUpdate(new Player
             {
                 ConnectionId = connectionId,
-                Id = _players.Keys.OrderByDescending(s => s.Id).FirstOrDefault()?.Id + 1 ?? 0,
+                Id = playerId,
                 GameIds = new List<int>()
             }, 0, (k, v) => 0);
+
+            return playerId;
+        }
+
+        public void UpdatePlayer(int playerId, string connectionId)
+        {
+            _players.Keys.FirstOrDefault(f => f.Id == playerId).ConnectionId = connectionId;
         }
 
         public void CheckGameOver(Game game)
@@ -1681,7 +1689,7 @@ namespace Codenames.Data
 
             var playerCount = game.Players.CountBy(c => c.team).ToDictionary();
             var redCount = playerCount.ContainsKey(Team.Red) ? playerCount[Team.Red] : 0;
-            var blueCount = playerCount.ContainsKey(Team.Red) ? playerCount[Team.Blue] : 0;
+            var blueCount = playerCount.ContainsKey(Team.Blue) ? playerCount[Team.Blue] : 0;
 
             Team team = (redCount, blueCount) switch
             {

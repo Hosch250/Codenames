@@ -135,3 +135,7 @@ app {
     margin-bottom: 2px;
     word-wrap: break-word;
 }
+
+.hide {
+    display: none;
+}
