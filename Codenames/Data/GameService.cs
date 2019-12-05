@@ -2,15 +2,17 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using Codenames.SignalRHubs;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.SignalR;
 using MoreLinq;
 
 namespace Codenames.Data
 {
     public class WordService
     {
-        private static readonly Random _random = new Random();
-        private static readonly string[] Words = new[]
+        private readonly Random _random = new Random();
+        private readonly string[] Words = new[]
         {
             "people",
             "history",
@@ -1538,11 +1540,20 @@ namespace Codenames.Data
             "wrap",
             "yesterday"
         };
+        private readonly ConcurrentDictionary<Game, byte> _games = new ConcurrentDictionary<Game, byte>();
+        private readonly ConcurrentDictionary<Player, byte> _players = new ConcurrentDictionary<Player, byte>();
 
-        private static string GetWord() =>
+        private readonly IHubContext<GameHub> _hubContext;
+
+        public WordService(IHubContext<GameHub> hubContext)
+        {
+            _hubContext = hubContext;
+        }
+
+        private string GetWord() =>
             Words[_random.Next(0, Words.Length)];
 
-        public static Game CreateGame()
+        public Game CreateGame()
         {
             var words = Enumerable.Range(0, 25).Select(s => GetWord()).ToList();
             var currentTeam = _random.Next(0, 2);
@@ -1558,7 +1569,7 @@ namespace Codenames.Data
                 PendingSpymaster = true,
                 GuessesRemaining = 0,
                 IsOver = false,
-                Players = new List<int>(),
+                Players = new List<(int, Team)>(),
                 Words = words.Select((s, i) => {
                     var state = i switch {
                         int val when val < currentTeamCount => (State)currentTeam,
@@ -1576,20 +1587,35 @@ namespace Codenames.Data
             return game;
         }
 
-        public static Game GetGame(int id) =>
+        public Game GetGame(int id) =>
             _games.Keys.FirstOrDefault(f => f.Id == id);
 
-        public static EventCallback MarkAsClicked(Game game, string word)
+        public EventCallback MarkAsClicked(Game game, string word)
         {
+            var wordData = game.Words
+                .FirstOrDefault(f => f.word == word);
+
+            if (wordData.word == null)
+            {
+                return EventCallback.Empty;
+            }
+
             game.Words = game.Words
                 .Select(f => f.word == word ? (f.word, f.state, true) : (f.word, f.state, f.isGuessed))
                 .ToList();
 
             CheckGameOver(game);
+
+            _hubContext.Clients.Group(game.Id.ToString()).SendAsync("ShowWord", word, wordData.state.ToString().ToLower());
             return EventCallback.Empty;
         }
 
-        public static void CheckGameOver(Game game)
+        public void AddPlayer(Guid playerId, string connectionId)
+        {
+
+        }
+
+        public void CheckGameOver(Game game)
         {
             var blueCountLeft = 0;
             var redCountLeft = 0;
@@ -1617,10 +1643,10 @@ namespace Codenames.Data
             }
         }
 
-        public static List<Game> GetActiveGames() =>
+        public List<Game> GetActiveGames() =>
             _games.Keys.Where(f => !f.IsOver).ToList();
 
-        public static void JoinGame(int gameId, int playerId)
+        public void JoinGame(int gameId, string connectionId)
         {
             var game = GetGame(gameId);
             if (game.IsOver)
@@ -1628,25 +1654,22 @@ namespace Codenames.Data
                 return;
             }
 
-            Team team;
+            var player = _players.Keys.FirstOrDefault(f => f.ConnectionId == connectionId);
+            if (player == null)
+            {
+                return;
+            }
 
             var playerCount = game.Players.CountBy(c => c.team).ToDictionary();
-            if (playerCount[Team.Red] > playerCount[Team.Blue])
+            Team team = (playerCount[Team.Red], playerCount[Team.Blue]) switch
             {
-                team = Team.Blue;
-            }
-            else if (playerCount[Team.Red] < playerCount[Team.Blue])
-            {
-                team = Team.Red;
-            }
-            else
-            {
-                team = (Team)_random.Next(0, 2);
-            }
+                var (red, blue) when red > blue => Team.Blue,
+                var (red, blue) when red < blue => Team.Red,
+                _ => (Team)_random.Next(0, 2)
+            };
 
-            game.Players.Add((playerId, team));
+            game.Players.Add((player.Id, team));
+            player.GameIds.Add(gameId);
         }
-
-        private static readonly ConcurrentDictionary<Game, byte> _games = new ConcurrentDictionary<Game, byte>();
     }
 }

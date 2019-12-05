@@ -1,10 +1,11 @@
 ﻿@page "/game/{Id}"
 
 @using Codenames.Data;
+@inject WordService _wordService
 
 @if (game == null)
 {
-     game = WordService.GetGame(int.Parse(Id));
+     game = _wordService.GetGame(int.Parse(Id));
 }
 @if (game != null)
 {
@@ -13,7 +14,7 @@
         {
             var tmpWord = item;
 
-            <div class="grid-item @(item.isGuessed ? item.state.ToString().ToLower() : "")" @onclick="() => WordService.MarkAsClicked(game, tmpWord.word)">
+            <div class="grid-item @item.word @(item.isGuessed ? item.state.ToString().ToLower() : "")" @onclick="() => _wordService.MarkAsClicked(game, tmpWord.word)">
                 @item.word
             </div>
         }

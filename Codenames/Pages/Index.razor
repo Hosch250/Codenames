@@ -1,8 +1,9 @@
 ﻿@page "/"
 @using Codenames.Data;
+@inject WordService _wordService
 
 <div class="grid-container">
-    @foreach (var game in WordService.GetActiveGames().OrderBy(o => o.Id))
+    @foreach (var game in _wordService.GetActiveGames().OrderBy(o => o.Id))
     {
         var status = (game.CurrentTeam, game.PendingSpymaster) switch
         {

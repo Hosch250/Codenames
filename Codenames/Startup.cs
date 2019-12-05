@@ -10,6 +10,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Codenames.Data;
+using Codenames.SignalRHubs;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace Codenames
 {
@@ -28,6 +31,13 @@ namespace Codenames
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            services.AddSignalR(o =>
+            {
+                o.EnableDetailedErrors = true;
+            });
+            
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
             services.AddSingleton<WordService>();
         }
 
@@ -45,6 +55,7 @@ namespace Codenames
                 app.UseHsts();
             }
 
+            app.UseWebSockets();
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
@@ -57,6 +68,7 @@ namespace Codenames
                     name: "default",
                     pattern: "{controller}/{action}/{id?}");
                 endpoints.MapFallbackToPage("/_Host");
+                endpoints.MapHub<GameHub>("/gameHub");
             });
         }
     }
