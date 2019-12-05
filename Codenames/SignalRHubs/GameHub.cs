@@ -22,10 +22,15 @@ namespace Codenames.SignalRHubs
             var parameter = _contextAccessor.HttpContext.Request.Query["currentPage"].ToString();
             var group = parameter.Split('/', StringSplitOptions.RemoveEmptyEntries);
 
-            if (group[0] == "game" && int.TryParse(group[1], out var gameId))
+            if (group[0] == "game" && int.TryParse(group[1], out _))
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, group[1]);
             }
+        }
+
+        public void AddPlayer()
+        {
+            _wordService.AddPlayer(Context.ConnectionId);
         }
 
         public async Task ChatMessage(int gameId, string user, string message)
@@ -33,10 +38,19 @@ namespace Codenames.SignalRHubs
             await Clients.Groups(gameId.ToString()).SendAsync("ChatMessage", user, message);
         }
 
-        public async Task JoinGame(int gameId)
+        public void JoinGame(int gameId)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, gameId.ToString());
             _wordService.JoinGame(gameId, Context.ConnectionId);
+        }
+
+        public void JoinGameAsSm(int gameId, int team)
+        {
+            _wordService.JoinGameAsSm(gameId, Context.ConnectionId, (Team)team);
+        }
+
+        public void LeaveGame(int gameId)
+        {
+            _wordService.LeaveGame(gameId, Context.ConnectionId);
         }
     }
 }

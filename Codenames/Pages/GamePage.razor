@@ -9,6 +9,13 @@
 }
 @if (game != null)
 {
+    <div>
+        <button type="button" class="btn btn-primary neutral" onclick="joinGame()">Join Game</button>
+        <button type="button" class="btn btn-primary red" onclick="joinGameAsSm(0)">Join Game as Red SM</button>
+        <button type="button" class="btn btn-primary blue" onclick="joinGameAsSm(1)">Join Game as Blue SM</button>
+        <button type="button" class="btn btn-primary assassin" onclick="leaveGame()">Leave Game</button>
+    </div>
+    <br/>
     <div class="grid-container">
         @foreach (var item in game.Words)
         {

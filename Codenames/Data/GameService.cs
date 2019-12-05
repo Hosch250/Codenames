@@ -1569,7 +1569,7 @@ namespace Codenames.Data
                 PendingSpymaster = true,
                 GuessesRemaining = 0,
                 IsOver = false,
-                Players = new List<(int, Team)>(),
+                Players = new List<(int, Team, bool)>(),
                 Words = words.Select((s, i) => {
                     var state = i switch {
                         int val when val < currentTeamCount => (State)currentTeam,
@@ -1592,6 +1592,11 @@ namespace Codenames.Data
 
         public EventCallback MarkAsClicked(Game game, string word)
         {
+            if (game.IsOver)
+            {
+                return EventCallback.Empty;
+            }
+
             var wordData = game.Words
                 .FirstOrDefault(f => f.word == word);
 
@@ -1610,9 +1615,14 @@ namespace Codenames.Data
             return EventCallback.Empty;
         }
 
-        public void AddPlayer(Guid playerId, string connectionId)
+        public void AddPlayer(string connectionId)
         {
-
+            _players.AddOrUpdate(new Player
+            {
+                ConnectionId = connectionId,
+                Id = _players.Keys.OrderByDescending(s => s.Id).FirstOrDefault()?.Id + 1 ?? 0,
+                GameIds = new List<int>()
+            }, 0, (k, v) => 0);
         }
 
         public void CheckGameOver(Game game)
@@ -1640,6 +1650,10 @@ namespace Codenames.Data
             if (blueCountLeft == 0 || redCountLeft == 0 || isAssassinGuessed)
             {
                 game.IsOver = true;
+                var unguessedWords = game.Words
+                    .Where(w => !w.isGuessed)
+                    .Select(s => new { s.word, state = s.state.ToString().ToLower() });
+                _hubContext.Clients.Group(game.Id.ToString()).SendAsync("ShowAllWords", unguessedWords);
             }
         }
 
@@ -1660,6 +1674,11 @@ namespace Codenames.Data
                 return;
             }
 
+            if (game.Players.Any(a => a.playerId == player.Id))
+            {
+                return;
+            }
+
             var playerCount = game.Players.CountBy(c => c.team).ToDictionary();
             Team team = (playerCount[Team.Red], playerCount[Team.Blue]) switch
             {
@@ -1668,8 +1687,37 @@ namespace Codenames.Data
                 _ => (Team)_random.Next(0, 2)
             };
 
-            game.Players.Add((player.Id, team));
+            game.Players.Add((player.Id, team, false));
             player.GameIds.Add(gameId);
+        }
+
+        public void JoinGameAsSm(int gameId, string connectionId, Team team)
+        {
+            var game = GetGame(gameId);
+            if (game.Players.Any(s => s.isSpyMaster && s.team == team))
+            {
+                return;
+            }
+
+            var player = _players.Keys.FirstOrDefault(f => f.ConnectionId == connectionId);
+            if (player == null)
+            {
+                return;
+            }
+
+            var playerCount = game.Players.CountBy(c => c.team).ToDictionary();
+
+            game.Players.Add((player.Id, team, true));
+            player.GameIds.Add(gameId);
+        }
+
+        public void LeaveGame(int gameId, string connectionId)
+        {
+            var game = GetGame(gameId);
+            var player = _players.Keys.FirstOrDefault(f => f.ConnectionId == connectionId);
+
+            game.Players.RemoveAll(s => s.playerId == player.Id);
+            player.GameIds.Remove(game.Id);
         }
     }
 }

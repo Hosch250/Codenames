@@ -9,7 +9,7 @@ namespace Codenames.Data
         public List<(string word, State state, bool isGuessed)> Words { get; set; }
         public int GuessesRemaining { get; set; }
         public bool PendingSpymaster { get; set; }
-        public List<(int playerId, Team team)> Players { get; set; }
+        public List<(int playerId, Team team, bool isSpyMaster)> Players { get; set; }
         public bool IsOver { get; set; }
     }
 }
