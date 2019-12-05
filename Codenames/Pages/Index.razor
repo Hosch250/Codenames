@@ -1,1 +1,20 @@
 ﻿@page "/"
+@using Codenames.Data;
+
+<div class="grid-container">
+    @foreach (var game in WordService.GetActiveGames().OrderBy(o => o.Id))
+    {
+        var status = (game.CurrentTeam, game.PendingSpymaster) switch
+        {
+            (Team.Blue, true) => "Blue Spymaster",
+            (Team.Red, true) => "Red Spymaster",
+            (Team.Blue, false) => $"Blue Guessing ({game.GuessesRemaining} left)",
+            (Team.Red, false) => $"Red Guessing ({game.GuessesRemaining} left)",
+            _ => throw new ArgumentException()
+        };
+
+        <div class="grid-item">
+            <a href="/game/@game.Id">Active Game<br/>(@status)</a>
+        </div>
+    }
+</div>

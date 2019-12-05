@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Components;
 using MoreLinq;
@@ -1554,6 +1555,10 @@ namespace Codenames.Data
             {
                 Id = _games.Keys.OrderByDescending(o => o.Id).FirstOrDefault()?.Id + 1 ?? 0,
                 CurrentTeam = (Team)currentTeam,
+                PendingSpymaster = true,
+                GuessesRemaining = 0,
+                IsOver = false,
+                Players = new List<int>(),
                 Words = words.Select((s, i) => {
                     var state = i switch {
                         int val when val < currentTeamCount => (State)currentTeam,
@@ -1579,8 +1584,41 @@ namespace Codenames.Data
             game.Words = game.Words
                 .Select(f => f.word == word ? (f.word, f.state, true) : (f.word, f.state, f.isGuessed))
                 .ToList();
+
+            CheckGameOver(game);
             return EventCallback.Empty;
         }
+
+        public static void CheckGameOver(Game game)
+        {
+            var blueCountLeft = 0;
+            var redCountLeft = 0;
+            var isAssassinGuessed = false;
+
+            foreach (var word in game.Words)
+            {
+                switch (word)
+                {
+                    case (_, State.Red, false):
+                        redCountLeft++;
+                        break;
+                    case (_, State.Blue, false):
+                        blueCountLeft++;
+                        break;
+                    case (_, State.Assassin, true):
+                        isAssassinGuessed = true;
+                        break;
+                }
+            };
+
+            if (blueCountLeft == 0 || redCountLeft == 0 || isAssassinGuessed)
+            {
+                game.IsOver = true;
+            }
+        }
+
+        public static List<Game> GetActiveGames() =>
+            _games.Keys.Where(f => !f.IsOver).ToList();
 
         private static readonly ConcurrentDictionary<Game, byte> _games = new ConcurrentDictionary<Game, byte>();
     }
