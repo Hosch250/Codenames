@@ -49,6 +49,19 @@ namespace Codenames.SignalRHubs
             await Clients.Groups(gameId.ToString()).SendAsync("ChatMessage", user, message, team);
         }
 
+        public async Task GiveClue(int gameId, string clue, string amount)
+        {
+            if (!_contextAccessor.HttpContext.Request.Cookies.ContainsKey("userid"))
+            {
+                return;
+            }
+
+            var playerId = _contextAccessor.HttpContext.Request.Cookies["userid"];
+
+            _gameService.GiveClue(gameId, int.Parse(playerId), clue, amount);
+            await Clients.Groups(gameId.ToString()).SendAsync("GiveClue", clue, amount);
+        }
+
         public void JoinGame(int gameId)
         {
             _gameService.JoinGame(gameId, Context.ConnectionId);

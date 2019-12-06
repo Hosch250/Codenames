@@ -21,21 +21,46 @@
     var showBlueSmJoin = !game.Players.Any(a => a.isSpyMaster && a.team == Team.Blue);
     var showLeave = game.Players.Any(a => a.playerId == userId);
 
-    <div>
+    <div class="button-row">
         <button type="button" class="join btn btn-primary neutral @(showJoin ? "" : "hide")" onclick="joinGame()">Join Game</button>
         <button type="button" class="sm-join btn btn-primary red @(showRedSmJoin ? "" : "hide")" onclick="joinGameAsSm(0)">Join Game as Red SM</button>
         <button type="button" class="sm-join btn btn-primary blue @(showBlueSmJoin ? "" : "hide")" onclick="joinGameAsSm(1)">Join Game as Blue SM</button>
         <button type="button" class="leave btn btn-primary assassin @(showLeave ? "" : "hide")" onclick="leaveGame()">Leave Game</button>
     </div>
-    <br />
+    <form class="sm-inputs @(game.Players.Any(w => w.isSpyMaster && w.playerId == userId) ? "" : "hide")">
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Message" aria-label="Message">
+            <select>
+                <option>0</option>
+                <option>1</option>
+                <option>2</option>
+                <option selected>3</option>
+                <option>4</option>
+                <option>5</option>
+                <option>6</option>
+                <option>7</option>
+                <option>8</option>
+                <option>9</option>
+                <option>unlimited</option>
+            </select>
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="submit">
+                    <span class="oi oi-arrow-right" aria-hidden="true"></span>
+                </button>
+            </div>
+        </div>
+    </form>
+    <div class="sm-clue bold">
+        <span class="sm-hint"></span>: <span class="sm-count"></span>
+    </div>
     <div class="row">
         <div class="col-lg order-lg-1">
             <WordGridControl game="game"></WordGridControl>
         </div>
-        <div class="col-sm chat-column red-chat-column order-lg-0">
+        <div class="col-sm red-chat-column order-lg-0">
             <ChatControl id="red-chat">Red Chat</ChatControl>
         </div>
-        <div class="col-sm chat-column blue-chat-column order-2">
+        <div class="col-sm blue-chat-column order-2">
             <ChatControl id="blue-chat">Blue Chat</ChatControl>
         </div>
     </div>

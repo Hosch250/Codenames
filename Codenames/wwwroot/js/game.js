@@ -67,14 +67,19 @@ function joinGame() {
 function joinGameAsSm(team) {
     var gameId = location.pathname.split('/').pop();
     connection.invoke("JoinGameAsSm", parseInt(gameId), team)
-        .catch(function (err) {
+        .then(function () {
+            $('.sm-inputs').removeClass('hide');
+        }).catch(function (err) {
             return console.error(err.toString());
         });
 }
 
 function leaveGame() {
     var gameId = location.pathname.split('/').pop();
-    connection.invoke("leaveGame", parseInt(gameId)).catch(function (err) {
+    connection.invoke("leaveGame", parseInt(gameId))
+        .then(function () {
+            $('.sm-inputs').addClass('hide');
+        }).catch(function (err) {
         return console.error(err.toString());
     });
 }

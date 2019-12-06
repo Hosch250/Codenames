@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Codenames.SignalRHubs;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using MoreLinq;
 
@@ -1544,14 +1545,25 @@ namespace Codenames.Data
         private readonly ConcurrentDictionary<Player, byte> _players = new ConcurrentDictionary<Player, byte>();
 
         private readonly IHubContext<GameHub> _hubContext;
+        private readonly IHttpContextAccessor _contextAccessor;
 
-        public WordService(IHubContext<GameHub> hubContext)
+        public WordService(IHubContext<GameHub> hubContext, IHttpContextAccessor contextAccessor)
         {
             _hubContext = hubContext;
+            _contextAccessor = contextAccessor;
         }
 
-        private string GetWord() =>
-            Words[_random.Next(0, Words.Length)];
+        private int? GetPlayerId()
+        {
+            if (!_contextAccessor.HttpContext.Request.Cookies.ContainsKey("userid"))
+            {
+                return null;
+            }
+
+            return int.TryParse(_contextAccessor.HttpContext.Request.Cookies["userid"], out var id)
+                ? (int?)id
+                : null;
+        }
 
         public Game CreateGame()
         {
@@ -1592,7 +1604,14 @@ namespace Codenames.Data
 
         public EventCallback MarkAsClicked(Game game, string word)
         {
-            if (game.IsOver)
+            var playerId = GetPlayerId();
+
+            if (game.IsOver|| game.PendingSpymaster || game.GuessesRemaining <= 0)
+            {
+                return EventCallback.Empty;
+            }
+
+            if (!game.Players.Any(a => a.playerId == playerId && a.team == game.CurrentTeam && !a.isSpyMaster))
             {
                 return EventCallback.Empty;
             }
@@ -1600,7 +1619,7 @@ namespace Codenames.Data
             var wordData = game.Words
                 .FirstOrDefault(f => f.word == word);
 
-            if (wordData.word == null)
+            if (wordData.word == null || wordData.isGuessed)
             {
                 return EventCallback.Empty;
             }
@@ -1610,6 +1629,17 @@ namespace Codenames.Data
                 .ToList();
 
             CheckGameOver(game);
+
+            if (!game.IsOver)
+            {
+                game.GuessesRemaining--;
+                if (wordData.state.ToString() != game.CurrentTeam.ToString())
+                {
+                    game.GuessesRemaining = 0;
+                    game.CurrentTeam = (Team)Math.Abs((int)game.CurrentTeam - 1);
+                    game.PendingSpymaster = true;
+                }
+            }
 
             _hubContext.Clients.Group(game.Id.ToString()).SendAsync("ShowWord", word, wordData.state.ToString().ToLower());
             return EventCallback.Empty;
@@ -1729,6 +1759,32 @@ namespace Codenames.Data
 
             game.Players.RemoveAll(s => s.playerId == player.Id);
             player.GameIds.Remove(game.Id);
+        }
+
+        public void GiveClue(int gameId, int playerId, string clue, string amount)
+        {
+            var game = GetGame(gameId);
+            if (game.IsOver || !game.PendingSpymaster)
+            {
+                return;
+            }
+
+            var player = _players.Keys.FirstOrDefault(f => f.Id == playerId);
+            if (player == null)
+            {
+                return;
+            }
+
+            if (!game.Players.Any(a => a.isSpyMaster && a.playerId == playerId && game.CurrentTeam == a.team))
+            {
+                return;
+            }
+
+            game.PendingSpymaster = false;
+            game.Clue = clue;
+            game.GuessesRemaining = amount == "unlimited" || int.TryParse(amount, out var iAmount)
+                ? int.MaxValue
+                : iAmount;
         }
     }
 }
