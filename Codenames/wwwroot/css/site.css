@@ -141,12 +141,12 @@ app {
     display: none;
 }
 
-@media only screen and (max-width: 1000px) and (min-width: 558.667px) {
-    .row .chat-column:first-child {
+@media only screen and (max-width: 992px) and (min-width: 559px) {
+    .red-chat-column {
         margin-right: 2px;
     }
 
-    .row .chat-column:last-child {
+    .blue-chat-column {
         margin-left: 2px;
     }
 
@@ -156,13 +156,13 @@ app {
     }
 }
 
-@media only screen and (max-width: 558.667px) {
-    .row .chat-column:first-child {
+@media only screen and (max-width: 559px) {
+    .red-chat-column {
         margin-bottom: 2px;
         margin-top: 5px;
     }
 
-    .row .chat-column:last-child {
+    .blue-chat-column {
         margin-top: 2px;
         margin-bottom: 5px;
     }
