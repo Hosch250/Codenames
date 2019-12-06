@@ -29,22 +29,13 @@
     </div>
     <br />
     <div class="row">
-        <div class="col-sm chat-column">
+        <div class="col-sm-8 order-1">
+            <WordGridControl game="game"></WordGridControl>
+        </div>
+        <div class="col-sm-2 chat-column order-0">
             <ChatControl id="red-chat">Red Chat</ChatControl>
         </div>
-        <div class="col-md">
-            <div class="grid-container">
-                @foreach (var item in game.Words)
-                {
-                    var tmpWord = item;
-
-                    <div class="grid-item @item.word @(game.IsOver || item.isGuessed ? item.state.ToString().ToLower() : "")" @onclick="() => _wordService.MarkAsClicked(game, tmpWord.word)">
-                        @item.word
-                    </div>
-                }
-            </div>
-        </div>
-        <div class="col-sm chat-column">
+        <div class="col-sm-2 chat-column order-2">
             <ChatControl id="blue-chat">Blue Chat</ChatControl>
         </div>
     </div>

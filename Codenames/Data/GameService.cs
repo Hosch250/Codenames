@@ -1555,8 +1555,8 @@ namespace Codenames.Data
 
         public Game CreateGame()
         {
-            var words = Enumerable.Range(0, 25).Select(s => GetWord()).ToList();
-            var currentTeam = _random.Next(0, 2);
+            var words = Words.Shuffle(_random).Take(25).ToList();
+            var currentTeam = (Team)_random.Next(0, 2);
 
             const int currentTeamCount = 9;
             const int otherTeamCount = 8;
@@ -1565,7 +1565,7 @@ namespace Codenames.Data
             var game = new Game
             {
                 Id = _games.Keys.OrderByDescending(o => o.Id).FirstOrDefault()?.Id + 1 ?? 0,
-                CurrentTeam = (Team)currentTeam,
+                CurrentTeam = currentTeam,
                 PendingSpymaster = true,
                 GuessesRemaining = 0,
                 IsOver = false,
@@ -1573,7 +1573,7 @@ namespace Codenames.Data
                 Words = words.Select((s, i) => {
                     var state = i switch {
                         int val when val < currentTeamCount => (State)currentTeam,
-                        int val when val < currentTeamCount + otherTeamCount => (State)Math.Abs(currentTeam - 1),
+                        int val when val < currentTeamCount + otherTeamCount => (State)Math.Abs((int)currentTeam - 1),
                         int val when val < currentTeamCount + otherTeamCount + neutralCount => State.Neutral,
                         _ => State.Assassin
                     };

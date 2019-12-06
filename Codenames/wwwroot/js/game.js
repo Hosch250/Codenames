@@ -5,12 +5,12 @@ var connection = new signalR.HubConnectionBuilder()
     .build();
 
 connection.on("ShowWord", function (word, state) {
-    $(`.grid-item.${word}`).addClass(state);
+    $(`.grid-item.word-${word}`).addClass(state);
 });
 
 connection.on("ShowAllWords", function (words) {
     for (var word of words) {
-        $(`.grid-item.${word.word}`).addClass(word.state);
+        $(`.grid-item.word-${word.word}`).addClass(word.state);
     }
 });
 
@@ -19,7 +19,6 @@ connection.on("RemoveButton", function (identifier) {
 });
 
 connection.on("AddButton", function (identifier) {
-    console.log(identifier);
     $(identifier).removeClass("hide");
 });
 

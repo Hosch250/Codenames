@@ -1,0 +1,18 @@
+﻿@using Codenames.Data;
+@inject WordService _wordService
+
+<div class="grid-container">
+    @foreach (var item in game.Words)
+    {
+        var tmpWord = item;
+
+        <div class="grid-item word-@item.word @(game.IsOver || item.isGuessed ? item.state.ToString().ToLower() : "")" @onclick="() => _wordService.MarkAsClicked(game, tmpWord.word)">
+            @item.word
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Game game { get; set; }
+}

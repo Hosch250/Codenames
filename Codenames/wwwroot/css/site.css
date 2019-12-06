@@ -108,6 +108,7 @@ app {
 .chat-column {
     background: whitesmoke;
     border-radius: 4px;
+    border: 1px solid grey;
 }
 
 .chat .header {
@@ -138,4 +139,31 @@ app {
 
 .hide {
     display: none;
+}
+
+@media only screen and (max-width: 1000px) and (min-width: 558.667px) {
+    .row .chat-column:first-child {
+        margin-right: 2px;
+    }
+
+    .row .chat-column:last-child {
+        margin-left: 2px;
+    }
+
+    .row .chat-column {
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+}
+
+@media only screen and (max-width: 558.667px) {
+    .row .chat-column:first-child {
+        margin-bottom: 2px;
+        margin-top: 5px;
+    }
+
+    .row .chat-column:last-child {
+        margin-top: 2px;
+        margin-bottom: 5px;
+    }
 }
