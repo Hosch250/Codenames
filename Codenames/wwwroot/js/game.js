@@ -70,8 +70,8 @@ function joinGame() {
             $('.current-team-hint').remove();
             $('.button-row').prepend(`<span class="current-team-hint" style="color: ${value.toLowerCase()}">You are on Team ${value}</span><br/>`);
         }).catch(function (err) {
-        return console.error(err.toString());
-    });
+            return console.error(err.toString());
+        });
 }
 
 function joinGameAsSm(team) {
@@ -90,17 +90,18 @@ function leaveGame() {
         .then(function () {
             $('.sm-inputs').addClass('hide');
         }).catch(function (err) {
-        return console.error(err.toString());
-    });
+            return console.error(err.toString());
+        });
 }
 
 function postToChat(evt) {
     evt.preventDefault();
 
-    var team = $(evt.target).closest('.chat').attr('id').replace('-chat', '');
+    var teamText = $(evt.target).closest('.chat').attr('id').replace('-chat', '');
+    var team = teamText === "red" ? 0 : 1;
 
     var gameId = location.pathname.split('/').pop();
-    connection.invoke("chatMessage", parseInt(gameId), "Player X", $(evt.target).find('input').val(), team)
+    connection.invoke("chatMessage", parseInt(gameId), parseInt(getCookie("userid")) || -1, $(evt.target).find('input').val(), team)
         .catch(function (err) {
             return console.error(err.toString());
         });

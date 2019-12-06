@@ -44,9 +44,14 @@ namespace Codenames.SignalRHubs
             return Task.FromResult(_gameService.AddPlayer(Context.ConnectionId));
         }
 
-        public async Task ChatMessage(int gameId, string user, string message, string team)
+        public async Task ChatMessage(int gameId, int playerId, string message, int team)
         {
-            await Clients.Groups(gameId.ToString()).SendAsync("ChatMessage", user, message, team);
+            var game = _gameService.GetGame(gameId);
+            var teamEnum = (Team)team;
+            if (game.Players.Any(a => a.playerId == playerId && a.team == teamEnum))
+            {
+                await Clients.Groups(gameId.ToString()).SendAsync("ChatMessage", playerId, message, teamEnum.ToString().ToLower());
+            }
         }
 
         public async Task GiveClue(int gameId, int playerId, string clue, string amount)
