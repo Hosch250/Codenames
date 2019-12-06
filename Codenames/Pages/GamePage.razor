@@ -22,26 +22,32 @@
     var showLeave = game.Players.Any(a => a.playerId == userId);
 
     <div class="button-row">
+        @if (showLeave)
+        {
+            var playerTeam = game.Players.First(f => f.playerId == userId);
+            <span class="current-team-hint" style="color: @playerTeam.team.ToString().ToLower()">You are on Team @playerTeam.team.ToString()</span><br />
+        }
+
         <button type="button" class="join btn btn-primary neutral @(showJoin ? "" : "hide")" onclick="joinGame()">Join Game</button>
         <button type="button" class="sm-join btn btn-primary red @(showRedSmJoin ? "" : "hide")" onclick="joinGameAsSm(0)">Join Game as Red SM</button>
         <button type="button" class="sm-join btn btn-primary blue @(showBlueSmJoin ? "" : "hide")" onclick="joinGameAsSm(1)">Join Game as Blue SM</button>
         <button type="button" class="leave btn btn-primary assassin @(showLeave ? "" : "hide")" onclick="leaveGame()">Leave Game</button>
     </div>
-    <form class="sm-inputs @(game.Players.Any(w => w.isSpyMaster && w.playerId == userId) ? "" : "hide")">
+    <form class="sm-inputs @(game.Players.Any(w => w.isSpyMaster && w.playerId == userId) ? "" : "hide")" onsubmit="playClue(event)">
         <div class="input-group">
             <input type="text" class="form-control" placeholder="Message" aria-label="Message">
             <select>
-                <option>0</option>
-                <option>1</option>
-                <option>2</option>
-                <option selected>3</option>
-                <option>4</option>
-                <option>5</option>
-                <option>6</option>
-                <option>7</option>
-                <option>8</option>
-                <option>9</option>
-                <option>unlimited</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3" selected>3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="unlimited">unlimited</option>
             </select>
             <div class="input-group-append">
                 <button class="btn btn-outline-secondary" type="submit">
@@ -50,8 +56,9 @@
             </div>
         </div>
     </form>
-    <div class="sm-clue bold">
-        <span class="sm-hint"></span>: <span class="sm-count"></span>
+    <div class="sm-clue">
+        <span class="sm-team">@game.CurrentTeam.ToString().ToLower()</span>:
+        <span class="sm-hint bold">@(game.PendingSpymaster ? "" : game.Clue)</span> (<span class="sm-count">@(game.PendingSpymaster ? "" : (game.GuessesRemaining == int.MaxValue ? "unlimited" : game.GuessesRemaining.ToString()))</span>)
     </div>
     <div class="row">
         <div class="col-lg order-lg-1">

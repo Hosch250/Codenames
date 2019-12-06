@@ -1,12 +1,21 @@
 ﻿@using Codenames.Data;
+@using Microsoft.AspNetCore.Http;
+
 @inject WordService _wordService
+@inject IHttpContextAccessor _contextAccessor
+
+@{    
+    var userId = _contextAccessor.HttpContext.Request.Cookies.ContainsKey("userid")
+        ? (int?)int.Parse(_contextAccessor.HttpContext.Request.Cookies["userid"])
+        : null;
+
+    var playerIsSm = game.Players.Any(a => a.isSpyMaster && a.playerId == userId);
+}
 
 <div class="grid-container">
     @foreach (var item in game.Words)
     {
-        var tmpWord = item;
-
-        <div class="grid-item word-@item.word @(game.IsOver || item.isGuessed ? item.state.ToString().ToLower() : "")" @onclick="() => _wordService.MarkAsClicked(game, tmpWord.word)">
+        <div class="grid-item word-@item.word @(playerIsSm || game.IsOver || item.isGuessed ? item.state.ToString().ToLower() : "")" onclick="markAsClicked('@item.word')">
             @item.word
         </div>
     }

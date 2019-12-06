@@ -1553,18 +1553,6 @@ namespace Codenames.Data
             _contextAccessor = contextAccessor;
         }
 
-        private int? GetPlayerId()
-        {
-            if (!_contextAccessor.HttpContext.Request.Cookies.ContainsKey("userid"))
-            {
-                return null;
-            }
-
-            return int.TryParse(_contextAccessor.HttpContext.Request.Cookies["userid"], out var id)
-                ? (int?)id
-                : null;
-        }
-
         public Game CreateGame()
         {
             var words = Words.Shuffle(_random).Take(25).ToList();
@@ -1602,18 +1590,17 @@ namespace Codenames.Data
         public Game GetGame(int id) =>
             _games.Keys.FirstOrDefault(f => f.Id == id);
 
-        public EventCallback MarkAsClicked(Game game, string word)
+        public bool MarkAsClicked(int gameId, int playerId, string word)
         {
-            var playerId = GetPlayerId();
-
+            var game = GetGame(gameId);
             if (game.IsOver|| game.PendingSpymaster || game.GuessesRemaining <= 0)
             {
-                return EventCallback.Empty;
+                return false;
             }
 
             if (!game.Players.Any(a => a.playerId == playerId && a.team == game.CurrentTeam && !a.isSpyMaster))
             {
-                return EventCallback.Empty;
+                return false;
             }
 
             var wordData = game.Words
@@ -1621,7 +1608,7 @@ namespace Codenames.Data
 
             if (wordData.word == null || wordData.isGuessed)
             {
-                return EventCallback.Empty;
+                return false;
             }
 
             game.Words = game.Words
@@ -1641,13 +1628,12 @@ namespace Codenames.Data
                 }
             }
 
-            _hubContext.Clients.Group(game.Id.ToString()).SendAsync("ShowWord", word, wordData.state.ToString().ToLower());
-            return EventCallback.Empty;
+            return true;
         }
 
         public int AddPlayer(string connectionId)
         {
-            var playerId = _players.Keys.OrderByDescending(s => s.Id).FirstOrDefault()?.Id + 1 ?? 0;
+            var playerId = _players.Keys.OrderByDescending(s => s.Id).FirstOrDefault()?.Id + 1 ?? 1;
             _players.AddOrUpdate(new Player
             {
                 ConnectionId = connectionId,
@@ -1698,26 +1684,26 @@ namespace Codenames.Data
         public List<Game> GetActiveGames() =>
             _games.Keys.Where(f => !f.IsOver).ToList();
 
-        public void JoinGame(int gameId, string connectionId)
+        public Team? JoinGame(int gameId, string connectionId)
         {
             var game = GetGame(gameId);
             if (game.IsOver)
             {
-                return;
+                return null;
             }
 
             var player = _players.Keys.FirstOrDefault(f => f.ConnectionId == connectionId);
             if (player == null)
             {
-                return;
+                return null;
             }
 
             if (game.Players.Any(a => a.playerId == player.Id))
             {
-                return;
+                return null;
             }
 
-            var playerCount = game.Players.CountBy(c => c.team).ToDictionary();
+            var playerCount = game.Players.Where(w => !w.isSpyMaster).CountBy(c => c.team).ToDictionary();
             var redCount = playerCount.ContainsKey(Team.Red) ? playerCount[Team.Red] : 0;
             var blueCount = playerCount.ContainsKey(Team.Blue) ? playerCount[Team.Blue] : 0;
 
@@ -1730,6 +1716,8 @@ namespace Codenames.Data
 
             game.Players.Add((player.Id, team, false));
             player.GameIds.Add(gameId);
+
+            return team;
         }
 
         public void JoinGameAsSm(int gameId, string connectionId, Team team)
@@ -1761,30 +1749,37 @@ namespace Codenames.Data
             player.GameIds.Remove(game.Id);
         }
 
-        public void GiveClue(int gameId, int playerId, string clue, string amount)
+        public bool GiveClue(int gameId, int playerId, string clue, string amount)
         {
             var game = GetGame(gameId);
             if (game.IsOver || !game.PendingSpymaster)
             {
-                return;
+                return false;
             }
 
             var player = _players.Keys.FirstOrDefault(f => f.Id == playerId);
             if (player == null)
             {
-                return;
+                return false;
             }
 
             if (!game.Players.Any(a => a.isSpyMaster && a.playerId == playerId && game.CurrentTeam == a.team))
             {
-                return;
+                return false;
+            }
+
+            if (!int.TryParse(amount, out var iAmount) && amount != "unlimited")
+            {
+                return false;
             }
 
             game.PendingSpymaster = false;
             game.Clue = clue;
-            game.GuessesRemaining = amount == "unlimited" || int.TryParse(amount, out var iAmount)
+            game.GuessesRemaining = amount == "unlimited"
                 ? int.MaxValue
                 : iAmount;
+
+            return true;
         }
     }
 }

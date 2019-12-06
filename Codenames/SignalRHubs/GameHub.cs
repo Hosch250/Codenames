@@ -49,24 +49,30 @@ namespace Codenames.SignalRHubs
             await Clients.Groups(gameId.ToString()).SendAsync("ChatMessage", user, message, team);
         }
 
-        public async Task GiveClue(int gameId, string clue, string amount)
+        public async Task GiveClue(int gameId, int playerId, string clue, string amount)
         {
-            if (!_contextAccessor.HttpContext.Request.Cookies.ContainsKey("userid"))
+            if (_gameService.GiveClue(gameId,  playerId, clue, amount))
             {
-                return;
+                await Clients.Groups(gameId.ToString()).SendAsync("GiveClue", _gameService.GetGame(gameId).CurrentTeam.ToString().ToLower(), clue, amount);
             }
-
-            var playerId = _contextAccessor.HttpContext.Request.Cookies["userid"];
-
-            _gameService.GiveClue(gameId, int.Parse(playerId), clue, amount);
-            await Clients.Groups(gameId.ToString()).SendAsync("GiveClue", clue, amount);
         }
 
-        public void JoinGame(int gameId)
+        public void PlayWord(int gameId, int playerId, string word)
         {
-            _gameService.JoinGame(gameId, Context.ConnectionId);
+            if (_gameService.MarkAsClicked(gameId, playerId, word))
+            {
+                var game = _gameService.GetGame(gameId);
+                Clients.Group(gameId.ToString()).SendAsync("ShowWord", word, game.Words.First(f => f.word == word).state.ToString().ToLower());
+            }
+        }
+
+        public string JoinGame(int gameId)
+        {
+            var team = _gameService.JoinGame(gameId, Context.ConnectionId);
             Clients.Caller.SendAsync("RemoveButton", $".join");
             Clients.Caller.SendAsync("AddButton", $".leave");
+
+            return team?.ToString();
         }
 
         public void JoinGameAsSm(int gameId, int team)

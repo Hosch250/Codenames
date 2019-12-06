@@ -22,6 +22,12 @@ connection.on("AddButton", function (identifier) {
     $(identifier).removeClass("hide");
 });
 
+connection.on("GiveClue", function (team, clue, amount) {
+    $('.sm-team').html(team);
+    $('.sm-hint').html(clue);
+    $('.sm-count').html(amount);
+});
+
 connection.on('ChatMessage', function (playerName, message, team) {
     let formattedMessage = `<div><span class="bold">${playerName}:</span> <span>${message}</span></div>`;
 
@@ -59,7 +65,11 @@ connection.start().then(function () {
 
 function joinGame() {
     var gameId = location.pathname.split('/').pop();
-    connection.invoke("JoinGame", parseInt(gameId)).catch(function (err) {
+    connection.invoke("JoinGame", parseInt(gameId))
+        .then(function (value) {
+            $('.current-team-hint').remove();
+            $('.button-row').prepend(`<span class="current-team-hint" style="color: ${value.toLowerCase()}">You are on Team ${value}</span><br/>`);
+        }).catch(function (err) {
         return console.error(err.toString());
     });
 }
@@ -95,3 +105,36 @@ function postToChat(evt) {
             return console.error(err.toString());
         });
 };
+
+function playClue(evt) {
+    evt.preventDefault();
+
+    var gameId = location.pathname.split('/').pop();
+    connection.invoke("giveClue", parseInt(gameId), parseInt(getCookie("userid")) || -1, $(evt.target).find('input').val(), $(evt.target).find('select').val())
+        .catch(function (err) {
+            return console.error(err.toString());
+        });
+};
+
+function markAsClicked(word) {
+    var gameId = location.pathname.split('/').pop();
+    connection.invoke("playWord", parseInt(gameId), parseInt(getCookie("userid")) || -1, word)
+        .catch(function (err) {
+            return console.error(err.toString());
+        });
+}
+
+function getCookie(name) {
+    var cookies = document.cookie.split(';');
+    for (var index in cookies) {
+        var cookie = cookies[index];
+        if (cookie.indexOf('=') === -1) {
+            continue;
+        }
+        var keyValue = cookie.split('=');
+        if (keyValue[0].trim() === name) {
+            return keyValue[1].trim();
+        }
+    }
+    return '';
+}
