@@ -1646,7 +1646,21 @@ namespace Codenames.Data
 
         public void UpdatePlayer(int playerId, string connectionId)
         {
-            _players.Keys.FirstOrDefault(f => f.Id == playerId).ConnectionId = connectionId;
+            var player = _players.Keys.FirstOrDefault(f => f.Id == playerId);
+            
+            if (player == null)
+            {
+                _players.AddOrUpdate(new Player
+                {
+                    ConnectionId = connectionId,
+                    Id = playerId,
+                    GameIds = new List<int>()
+                }, 0, (k, v) => 0);
+            }
+            else
+            {
+                player.ConnectionId = connectionId;
+            }
         }
 
         public void CheckGameOver(Game game)
