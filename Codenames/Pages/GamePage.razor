@@ -32,6 +32,7 @@
         <button type="button" class="sm-join btn btn-primary red @(showRedSmJoin ? "" : "hide")" onclick="joinGameAsSm(0)">Join Game as Red SM</button>
         <button type="button" class="sm-join btn btn-primary blue @(showBlueSmJoin ? "" : "hide")" onclick="joinGameAsSm(1)">Join Game as Blue SM</button>
         <button type="button" class="leave btn btn-primary assassin @(showLeave ? "" : "hide")" onclick="leaveGame()">Leave Game</button>
+        <button type="button" class="leave btn btn-primary assassin float-right @(showLeave ? "" : "hide")" onclick="pass()">Pass</button>
     </div>
     <form class="sm-inputs @(game.Players.Any(w => w.isSpyMaster && w.playerId == userId) ? "" : "hide")" onsubmit="playClue(event)">
         <div class="input-group">

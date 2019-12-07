@@ -1748,8 +1748,6 @@ namespace Codenames.Data
                 return;
             }
 
-            var playerCount = game.Players.CountBy(c => c.team).ToDictionary();
-
             game.Players.Add((player.Id, team, true));
             player.GameIds.Add(gameId);
         }
@@ -1761,6 +1759,24 @@ namespace Codenames.Data
 
             game.Players.RemoveAll(s => s.playerId == player.Id);
             player.GameIds.Remove(game.Id);
+        }
+
+        public void Pass(int gameId, int playerId)
+        {
+            var game = GetGame(gameId);
+            if (game.IsOver || game.PendingSpymaster || game.GuessesRemaining <= 0)
+            {
+                return;
+            }
+
+            if (!game.Players.Any(a => a.playerId == playerId && a.team == game.CurrentTeam && !a.isSpyMaster))
+            {
+                return;
+            }
+
+            game.GuessesRemaining = 0;
+            game.CurrentTeam = (Team)Math.Abs((int)game.CurrentTeam - 1);
+            game.PendingSpymaster = true;
         }
 
         public bool GiveClue(int gameId, int playerId, string clue, string amount)

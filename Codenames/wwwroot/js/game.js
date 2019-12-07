@@ -127,6 +127,14 @@ function markAsClicked(word) {
         });
 }
 
+function pass() {
+    var gameId = location.pathname.split('/').pop();
+    connection.invoke("pass", parseInt(gameId), parseInt(getCookie("userid")) || -1)
+        .catch(function (err) {
+            return console.error(err.toString());
+        });
+}
+
 function getCookie(name) {
     var cookies = document.cookie.split(';');
     for (var index in cookies) {

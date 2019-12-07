@@ -71,6 +71,11 @@ namespace Codenames.SignalRHubs
             }
         }
 
+        public void Pass(int gameId, int playerId)
+        {
+            _gameService.Pass(gameId, playerId);
+        }
+
         public string JoinGame(int gameId)
         {
             var team = _gameService.JoinGame(gameId, Context.ConnectionId);
