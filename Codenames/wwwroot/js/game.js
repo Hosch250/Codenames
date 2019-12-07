@@ -102,7 +102,9 @@ function postToChat(evt) {
 
     var gameId = location.pathname.split('/').pop();
     connection.invoke("chatMessage", parseInt(gameId), parseInt(getCookie("userid")) || -1, $(evt.target).find('input').val(), team)
-        .catch(function (err) {
+        .then(function () {
+            $(evt.target).find('input').val('');
+        }).catch(function (err) {
             return console.error(err.toString());
         });
 };
