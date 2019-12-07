@@ -25,7 +25,7 @@ connection.on("AddButton", function (identifier) {
 connection.on("GiveClue", function (team, clue, amount) {
     $('.sm-team').html(team);
     $('.sm-hint').html(clue);
-    $('.sm-count').html(amount);
+    $('.sm-count').html(amount > 9 ? "unlimited" : amount.toString());
 });
 
 connection.on('ChatMessage', function (playerName, message, team) {
